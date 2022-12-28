@@ -1,0 +1,164 @@
+<canvas id="triangle" width="500px" height="400px" style="border: 1px solid black"></canvas>
+<script>
+    const canvas = document.getElementById('triangle');
+    const context = canvas.getContext('2d');
+
+
+    const Point = function (x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    function draw_triangle() {
+        line(figure[0].x, figure[0].y, figure[1].x, figure[1].y);
+        line(figure[1].x, figure[1].y, figure[2].x, figure[2].y);
+        line(figure[2].x, figure[2].y, figure[0].x, figure[0].y);
+    }
+
+    function fill_triangle() {
+
+        const Ymin = get_MinY(figure);
+        const Ymax = get_MaxY(figure);
+
+        let Xs = [];
+
+        for (let y = Ymin; y < Ymax; y++) {
+            for (let i = 0; i < 3; i++) {
+
+                if (y === figure[i].y) {
+                    let i1 = (i + 2) % 3;
+                    let i2 = (i + 1) % 3;
+
+                    if (figure[i].y !== figure[i2].y) {
+                        if (figure[i].y < figure[i2].y) {
+                            Xs.push({
+                                P: figure[i],
+                                P2: figure[i2],
+                                x: figure[i].x,
+                                k: (figure[i2].x - figure[i].x) / (figure[i2].y - figure[i].y)
+                            });
+                            Xs.sort(probe);
+                        } else {
+                            for (let j in Xs) {
+                                if (Xs[j].P === figure[i2] && Xs[j].P2 === figure[i]) {
+                                    Xs.splice(j, 1);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (figure[i].y !== figure[i1].y) {
+                        if (figure[i].y < figure[i1].y) {
+                            Xs.push({
+                                P: figure[i],
+                                P2: figure[i1],
+                                x: figure[i].x,
+                                k: (figure[i1].x - figure[i].x) / (figure[i1].y - figure[i].y)
+                            });
+                            Xs.sort(probe);
+                        } else {
+                            for (let j in Xs) {
+                                if (Xs[j].P === figure[i1] && Xs[j].P2 === figure[i]) {
+                                    Xs.splice(j, 1);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for (let i = 1; i < Xs.length / 2 + 1; i++) {
+                let i1 = 2 * i - 2;
+                let i2 = 2 * i - 1;
+
+                line(Math.ceil(Xs[i1].x), y, Math.floor(Xs[i2].x), y);
+                Xs[i1].x += Xs[i1].k;
+                Xs[i2].x += Xs[i2].k;
+            }
+        }
+    }
+
+    function probe(a, b) {
+        if (a.P === b.P) {
+            if (a.k < b.k) return -1;
+        }
+
+        if (a.x < b.x) return -1;
+        return 1;
+    }
+
+    function get_MinY(p) {
+        let Y = p[0].y;
+        for (let i in p)
+            Y = Math.min(Y, p[i].y);
+        return Y;
+    }
+
+    function get_MaxY(p) {
+        let Y = p[0].y;
+        for (let i in p)
+            Y = Math.max(Y, p[i].y);
+        return Y;
+    }
+
+    function line(x1, y1, x2, y2) {
+        let dx, dy, d, d1, d2, x, y, stp;
+        dx = x2 - x1;
+        dy = y2 - y1;
+        if ((Math.abs(dx) > Math.abs(dy) && x2 < x1) || (Math.abs(dx) <= Math.abs(dy) && y2 < y1)) {
+            x = x1;
+            x1 = x2;
+            x2 = x;
+            y = y1;
+            y1 = y2;
+            y2 = y;
+        }
+        dx = x2 - x1;
+        dy = y2 - y1;
+        stp = 1;
+        context.fillRect(x, y, 1, 1);
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if (dy < 0) {
+                stp = -1;
+                dy = -dy;
+            }
+            d = (dy * 2) - dx;
+            d1 = dy * 2;
+            d2 = (dy - dx) * 2;
+            y = y1;
+            for (x = x1 + 1; x <= x2; x++) {
+                if (d > 0) {
+                    y = y + stp;
+                    d = d + d2;
+                } else d = d + d1;
+                context.fillRect(x, y, 1, 1);
+            }
+        } else {
+            if (dx < 0) {
+                stp = -1;
+                dx = -dx;
+            }
+            d = (dx * 2) - dy;
+            d1 = dx * 2;
+            d2 = (dx - dy) * 2;
+            x = x1;
+            for (y = y1 + 1; y <= y2; y++) {
+                if (d > 0) {
+                    x = x + stp;
+                    d = d + d2;
+                } else d = d + d1;
+                context.fillRect(x, y, 1, 1);
+            }
+        }
+    }
+
+    let x1 = 100, x2 = 200, x3 = 300, y1 = 100, y2 = 0, y3 = 200;
+    let figure = [new Point(x1, y1), new Point(x2, y2), new Point(x3, y3)];
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, 500, 400);
+    context.fillStyle = 'black';
+    draw_triangle(figure);
+    context.fillStyle = 'red';
+    fill_triangle(figure);
+
+</script>
